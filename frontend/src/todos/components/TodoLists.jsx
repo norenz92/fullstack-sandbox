@@ -5,37 +5,63 @@ import List from '@material-ui/core/List'
 import ListItem from '@material-ui/core/ListItem'
 import ListItemText from '@material-ui/core/ListItemText'
 import ListItemIcon from '@material-ui/core/ListItemIcon'
+import ListItemSecondaryAction from '@material-ui/core/ListItemSecondaryAction';
+import DeleteIcon from '@material-ui/icons/Delete';
 import ReceiptIcon from '@material-ui/icons/Receipt'
+import IconButton from '@material-ui/core/IconButton';
 import Typography from '@material-ui/core/Typography'
+import CircularProgress from '@material-ui/core/CircularProgress';
 import { TodoListForm } from './TodoListForm'
-
-const sleep = ms => new Promise(resolve => setTimeout(resolve, ms))
-
-const getPersonalTodos = () => {
-  return sleep(1000).then(() => Promise.resolve({
-    '0000000001': {
-      id: '0000000001',
-      title: 'First List',
-      todos: ['First todo of first list!']
-    },
-    '0000000002': {
-      id: '0000000002',
-      title: 'Second List',
-      todos: ['First todo of second list!']
-    }
-  }))
-}
+import { AddTodoList } from './AddTodoList'
+const axios = require('axios').default;
 
 export const TodoLists = ({ style }) => {
   const [todoLists, setTodoLists] = useState({})
   const [activeList, setActiveList] = useState()
+  const [isLoading, setIsLoading] = useState(true)
+  const [firstLoadDone, setFirstLoadDone] = useState(false)
+
+  const getTodos = async () => {
+    return await axios.get('http://localhost:3001/getTodo').then(res => res.data)
+    
+  }
+
+  const updateTodo = async () => {
+    return await axios.post('http://localhost:3001/updateTodo', todoLists)
+  }
+
+  const deleteList = async (id) => {
+    if (window.confirm('Are you sure you want to delete this list?')) {
+      setIsLoading(true)
+      let updatedLists = todoLists;
+      delete updatedLists[id]
+      setTodoLists({...updatedLists})
+    }
+  }
 
   useEffect(() => {
-    getPersonalTodos()
-      .then(setTodoLists)
+    if (firstLoadDone) updateTodo().then(() => setIsLoading(false))
+  }, [todoLists])
+
+  useEffect(() => {
+    getTodos()
+      .then(setTodoLists).then(() => setFirstLoadDone(true)).then(() => setIsLoading(false))
   }, [])
 
-  if (!Object.keys(todoLists).length) return null
+  const listIsCompleted = (todos) => {
+    return todos.every(item => item.completed === true)
+  }
+
+  const completedTodosCountText = (todos) => {
+    let totalTodosCount = todos.length;
+    let completedTodosCount = todos.reduce(function(n, todo) {
+      return n + (todo.completed === true);
+  }, 0);
+    return `(${completedTodosCount}/${totalTodosCount})`
+  }
+
+  if (isLoading) return <CircularProgress/>
+
   return <Fragment>
     <Card style={style}>
       <CardContent>
@@ -53,9 +79,27 @@ export const TodoLists = ({ style }) => {
             <ListItemIcon>
               <ReceiptIcon />
             </ListItemIcon>
-            <ListItemText primary={todoLists[key].title} />
+            <ListItemText
+              primary={`${todoLists[key].title} ${completedTodosCountText(todoLists[key].todos)}`}
+              secondary={((!listIsCompleted(todoLists[key].todos)) || (todoLists[key].todos.length < 1)) ? 'Not completed' : 'Completed'}
+              secondaryTypographyProps={{color: ((!listIsCompleted(todoLists[key].todos)) || (todoLists[key].todos.length < 1)) ? 'error' : 'primary'}} />
+            <ListItemSecondaryAction>
+              <IconButton edge="end" color="secondary" aria-label="delete" onClick={() => {
+                deleteList(key)
+              }}>
+                <DeleteIcon />
+              </IconButton>
+            </ListItemSecondaryAction>
           </ListItem>)}
         </List>
+        <AddTodoList
+          todoLists={todoLists}
+          saveTodoList={(id, title) => {
+            setTodoLists({
+              ...todoLists,
+              [id]: {id, title, todos: []}
+            })
+        }}/>
       </CardContent>
     </Card>
     {todoLists[activeList] && <TodoListForm
@@ -69,5 +113,6 @@ export const TodoLists = ({ style }) => {
         })
       }}
     />}
+    
   </Fragment>
 }

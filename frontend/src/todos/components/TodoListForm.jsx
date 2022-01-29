@@ -3,6 +3,9 @@ import { makeStyles } from '@material-ui/styles'
 import { TextField, Card, CardContent, CardActions, Button, Typography} from '@material-ui/core'
 import DeleteIcon from '@material-ui/icons/Delete'
 import AddIcon from '@material-ui/icons/Add'
+import ListItemIcon from '@material-ui/core/ListItemIcon';
+import Checkbox from '@material-ui/core/Checkbox';
+import FormControlLabel from '@material-ui/core/FormControlLabel';
 
 const useStyles = makeStyles({
   card: {
@@ -41,23 +44,47 @@ export const TodoListForm = ({ todoList, saveTodoList }) => {
           {todoList.title}
         </Typography>
         <form onSubmit={handleSubmit} className={classes.form}>
-          {todos.map((name, index) => (
+          {todos.map((todo, index) => (
             <div key={index} className={classes.todoLine}>
               <Typography className={classes.standardSpace} variant='h6'>
-                {index + 1}
+                #{index + 1}
               </Typography>
               <TextField
                 label='What to do?'
-                value={name}
+                value={todo.title}
                 onChange={event => {
                   setTodos([ // immutable update
                     ...todos.slice(0, index),
-                    event.target.value,
+                    {
+                      ...todo,
+                      title: event.target.value
+                    },
                     ...todos.slice(index + 1)
                   ])
                 }}
                 className={classes.textField}
               />
+              <ListItemIcon>
+              <FormControlLabel
+                value="top"
+                control={<Checkbox
+                  checked={todo.completed}
+                  onChange={(event) => {
+                    setTodos([ // immutable update
+                      ...todos.slice(0, index),
+                      {
+                        ...todo,
+                        completed: event.target.checked
+                      },
+                      ...todos.slice(index + 1)
+                    ])
+                  }}
+                />}
+                label="Completed"
+                labelPlacement="top"
+              />
+                
+              </ListItemIcon>
               <Button
                 size='small'
                 color='secondary'
