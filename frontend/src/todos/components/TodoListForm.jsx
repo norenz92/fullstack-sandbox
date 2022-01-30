@@ -68,7 +68,7 @@ export const TodoListForm = ({ todoList, saveTodoList }) => {
               <FormControlLabel
                 value="top"
                 control={<Checkbox
-                  checked={todo.completed}
+                  checked={todo.completed || false}
                   onChange={(event) => {
                     setTodos([ // immutable update
                       ...todos.slice(0, index),

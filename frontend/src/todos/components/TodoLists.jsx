@@ -32,16 +32,7 @@ export const TodoLists = ({ style }) => {
     }
   }
 
-  const updateTodos = async () => {
-    try {
-      return await axios.post('http://localhost:3001/updateTodo', todoLists)
-    } catch (err) {
-      window.alert(err)
-      return {}
-    } finally {
-      setIsLoading(false)
-    }
-  }
+  
 
   const deleteList = async (id) => {
     if (window.confirm('Are you sure you want to delete this list?')) {
@@ -53,6 +44,16 @@ export const TodoLists = ({ style }) => {
   }
 
   useEffect(() => {
+    const updateTodos = async () => {
+      try {
+        return await axios.post('http://localhost:3001/updateTodo', todoLists)
+      } catch (err) {
+        window.alert(err)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
     if (firstLoadDone) updateTodos()
   }, [todoLists])
 
