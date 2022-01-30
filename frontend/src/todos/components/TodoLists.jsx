@@ -22,12 +22,25 @@ export const TodoLists = ({ style }) => {
   const [firstLoadDone, setFirstLoadDone] = useState(false)
 
   const getTodos = async () => {
-    return await axios.get('http://localhost:3001/getTodo').then(res => res.data)
-    
+    try {
+      return await axios.get('http://localhost:3001/getTodo').then(res => res.data)
+    } catch (err) {
+      window.alert(err)
+      return {}
+    } finally {
+      setIsLoading(false)
+    }
   }
 
-  const updateTodo = async () => {
-    return await axios.post('http://localhost:3001/updateTodo', todoLists)
+  const updateTodos = async () => {
+    try {
+      return await axios.post('http://localhost:3001/updateTodo', todoLists)
+    } catch (err) {
+      window.alert(err)
+      return {}
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   const deleteList = async (id) => {
@@ -40,19 +53,19 @@ export const TodoLists = ({ style }) => {
   }
 
   useEffect(() => {
-    if (firstLoadDone) updateTodo().then(() => setIsLoading(false))
+    if (firstLoadDone) updateTodos()
   }, [todoLists])
 
   useEffect(() => {
     getTodos()
-      .then(setTodoLists).then(() => setFirstLoadDone(true)).then(() => setIsLoading(false))
+      .then(setTodoLists).then(() => setFirstLoadDone(true))
   }, [])
 
-  const listIsCompleted = (todos) => {
+  const listCompleted = (todos) => {
     return todos.every(item => item.completed === true)
   }
 
-  const completedTodosCountText = (todos) => {
+  const completedTodosText = (todos) => {
     let totalTodosCount = todos.length;
     let completedTodosCount = todos.reduce(function(n, todo) {
       return n + (todo.completed === true);
@@ -80,9 +93,9 @@ export const TodoLists = ({ style }) => {
               <ReceiptIcon />
             </ListItemIcon>
             <ListItemText
-              primary={`${todoLists[key].title} ${completedTodosCountText(todoLists[key].todos)}`}
-              secondary={((!listIsCompleted(todoLists[key].todos)) || (todoLists[key].todos.length < 1)) ? 'Not completed' : 'Completed'}
-              secondaryTypographyProps={{color: ((!listIsCompleted(todoLists[key].todos)) || (todoLists[key].todos.length < 1)) ? 'error' : 'primary'}} />
+              primary={`${todoLists[key].title} ${completedTodosText(todoLists[key].todos)}`}
+              secondary={((!listCompleted(todoLists[key].todos)) || (todoLists[key].todos.length < 1)) ? 'Not completed' : 'Completed'}
+              secondaryTypographyProps={{color: ((!listCompleted(todoLists[key].todos)) || (todoLists[key].todos.length < 1)) ? 'error' : 'primary'}} />
             <ListItemSecondaryAction>
               <IconButton edge="end" color="secondary" aria-label="delete" onClick={() => {
                 deleteList(key)

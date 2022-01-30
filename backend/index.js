@@ -18,7 +18,6 @@ app.get('/getTodo', (req, res) => {
 })
 
 app.post('/updateTodo', (req, res) => {
-  console.log(req.body)
   api.updateTodos(req.body).then(todo => res.send(todo.content.value)).catch(err => res.send(err))
 })
 
